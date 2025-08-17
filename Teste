@@ -1,23 +1,22 @@
--- Mostra a posição atual no canto da tela
 local player = game.Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
 local hrp = char:WaitForChild("HumanoidRootPart")
 
 local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "PosDisplay"
 ScreenGui.Parent = player:WaitForChild("PlayerGui")
 
 local PosLabel = Instance.new("TextLabel")
-PosLabel.Size = UDim2.new(0, 250, 0, 50)
+PosLabel.Size = UDim2.new(0, 300, 0, 50)
 PosLabel.Position = UDim2.new(0, 10, 0, 10)
 PosLabel.BackgroundTransparency = 0.5
-PosLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-PosLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+PosLabel.BackgroundColor3 = Color3.fromRGB(0,0,0)
+PosLabel.TextColor3 = Color3.fromRGB(255,255,255)
 PosLabel.Font = Enum.Font.SourceSansBold
 PosLabel.TextSize = 18
+PosLabel.Text = "X: 0, Y: 0, Z: 0"
 PosLabel.Parent = ScreenGui
 
 game:GetService("RunService").RenderStepped:Connect(function()
-    PosLabel.Text = "X: "..math.floor(hrp.Position.X).. 
-                    " Y: "..math.floor(hrp.Position.Y)..
-                    " Z: "..math.floor(hrp.Position.Z)
+    PosLabel.Text = string.format("X: %.1f, Y: %.1f, Z: %.1f", hrp.Position.X, hrp.Position.Y, hrp.Position.Z)
 end)
