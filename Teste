@@ -1,44 +1,49 @@
--- Hub Kill ao Tocar (Delta Executor)
+-- Hub Kill ao Tocar (Delta Executor) - Final
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
--- Verifica RemoteEvent
+-- Verifica se o RemoteEvent existe
 local KillEvent = ReplicatedStorage:FindFirstChild("KillEvent")
 if not KillEvent then
-    warn("KillEvent não encontrado! Crie um RemoteEvent chamado 'KillEvent'.")
+    warn("KillEvent não encontrado! Crie um RemoteEvent chamado 'KillEvent' no ReplicatedStorage.")
     return
 end
 
--- Criar GUI diretamente no CoreGui
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "HubTesteDelta"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = game:GetService("CoreGui") -- CoreGui funciona melhor no Delta
+-- Função para criar GUI de forma segura
+local function createGUI()
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "HubTesteDelta"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui") -- PlayerGui é seguro no Delta
 
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 220, 0, 100)
-frame.Position = UDim2.new(0.5, -110, 0.5, -50)
-frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-frame.Active = true
-frame.Draggable = true
-frame.Parent = ScreenGui
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 220, 0, 100)
+    frame.Position = UDim2.new(0.5, -110, 0.5, -50)
+    frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    frame.Active = true
+    frame.Draggable = true
+    frame.Parent = ScreenGui
 
-local button = Instance.new("TextButton")
-button.Size = UDim2.new(0.8, 0, 0, 60)
-button.Position = UDim2.new(0.1, 0, 0.2, 0)
-button.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Vermelho fixo
-button.TextColor3 = Color3.fromRGB(255, 255, 255)
-button.Text = "Ativar Kill"
-button.TextScaled = true
-button.Parent = frame
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0.8, 0, 0, 60)
+    button.Position = UDim2.new(0.1, 0, 0.2, 0)
+    button.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Text = "Ativar Kill"
+    button.TextScaled = true
+    button.Parent = frame
 
--- Ativar/Desativar Kill
-local killEnabled = false
-button.MouseButton1Click:Connect(function()
-    killEnabled = not killEnabled
-    button.Text = killEnabled and "Kill: ON" or "Ativar Kill"
-end)
+    local killEnabled = false
+    button.MouseButton1Click:Connect(function()
+        killEnabled = not killEnabled
+        button.Text = killEnabled and "Kill: ON" or "Ativar Kill"
+    end)
+
+    return killEnabled
+end
+
+local killEnabled = createGUI()
 
 -- Função de Kill ao tocar
 local function setupCharacter(char)
@@ -53,7 +58,7 @@ local function setupCharacter(char)
     end)
 end
 
--- Configuração inicial e respawn
+-- Setup inicial e respawn
 if LocalPlayer.Character then
     setupCharacter(LocalPlayer.Character)
 end
