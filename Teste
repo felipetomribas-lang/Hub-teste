@@ -1,7 +1,6 @@
--- LocalPlayer
 local player = game.Players.LocalPlayer
 
--- GUI
+-- GUI simples e movível
 local gui = Instance.new("ScreenGui")
 gui.Name = "HubMovel"
 gui.Parent = player:WaitForChild("PlayerGui")
@@ -11,7 +10,7 @@ frame.Size = UDim2.new(0, 200, 0, 80)
 frame.Position = UDim2.new(0.5, -100, 0.5, -40)
 frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 frame.Active = true
-frame.Draggable = true -- Permite arrastar a tela
+frame.Draggable = true
 frame.Parent = gui
 
 local button = Instance.new("TextButton")
@@ -34,17 +33,15 @@ local bases = {
     Vector3.new(-348.3, -6.5, 218.0)
 }
 
--- Função para encontrar a base mais próxima
+-- Função para base mais próxima
 local function baseMaisProxima()
     local char = player.Character
     if not char then return nil end
     local hrp = char:FindFirstChild("HumanoidRootPart")
     if not hrp then return nil end
-
     local pos = hrp.Position
     local maisProxima = bases[1]
     local menorDist = (pos - bases[1]).Magnitude
-
     for i = 2, #bases do
         local dist = (pos - bases[i]).Magnitude
         if dist < menorDist then
@@ -52,26 +49,44 @@ local function baseMaisProxima()
             maisProxima = bases[i]
         end
     end
-
     return maisProxima
 end
 
--- Função de voo gradual
+-- Função de voo turbo seguro
 local function voarParaBase()
     local char = player.Character
     if not char then return end
     local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if not hrp or not humanoid then return end
+
+    humanoid.PlatformStand = true -- desativa física normal
 
     local destino = baseMaisProxima()
     if not destino then return end
 
-    local velocidade = 50 -- studs por segundo
-    while (hrp.Position - destino).Magnitude > 1 do
-        local direcao = (destino - hrp.Position).Unit
-        hrp.CFrame = hrp.CFrame + direcao * (velocidade * wait())
-    end
+    local bv = Instance.new("BodyVelocity")
+    bv.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+    bv.Velocity = Vector3.new(0,0,0)
+    bv.Parent = hrp
+
+    local velocidadeTurbo = 200 -- turbo, muito rápido
+    local run = true
+    spawn(function()
+        while run do
+            local direcao = (destino - hrp.Position)
+            if direcao.Magnitude < 2 then
+                run = false
+                break
+            end
+            bv.Velocity = direcao.Unit * velocidadeTurbo
+            wait(0.03)
+        end
+    end)
+
+    repeat wait() until not run
+    bv:Destroy()
+    humanoid.PlatformStand = false
 end
 
--- Conecta o botão
 button.MouseButton1Click:Connect(voarParaBase)
