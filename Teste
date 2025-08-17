@@ -1,4 +1,4 @@
--- Hub Kill ao Tocar (executor) - botão vermelho
+-- Hub Kill ao Tocar (executor)
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
