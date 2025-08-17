@@ -1,65 +1,64 @@
-local player = game.Players.LocalPlayer
+--// Gui Principal
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game.CoreGui
 
--- Criar Hub
-local gui = Instance.new("ScreenGui", player.PlayerGui)
-local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 220, 0, 100)
-frame.Position = UDim2.new(0.5, -110, 0.5, -50)
-frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-frame.Active = true
-frame.Draggable = true
-
-local button = Instance.new("TextButton", frame)
-button.Size = UDim2.new(0.8, 0, 0, 60)
-button.Position = UDim2.new(0.1, 0, 0.2, 0)
-button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-button.TextColor3 = Color3.fromRGB(255, 255, 255)
-button.Text = "Ativar Kill ao Tocar"
-button.Font = Enum.Font.SourceSansBold
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0, 150, 0, 50)
+button.Position = UDim2.new(0.5, -75, 0.9, -25)
+button.Text = "KILL MODE"
 button.TextScaled = true
+button.BackgroundColor3 = Color3.fromRGB(255,0,0)
+button.TextColor3 = Color3.fromRGB(255,255,255)
+button.Parent = ScreenGui
+button.BorderSizePixel = 0
+button.AutoButtonColor = true
 
-local ativo = false
-
-button.MouseButton1Click:Connect(function()
-    ativo = not ativo
-    if ativo then
-        button.Text = "Kill ao Tocar: Ativo"
-    else
-        button.Text = "Ativar Kill ao Tocar"
+--// Rainbow
+task.spawn(function()
+    while task.wait(0.1) do
+        local t = tick()
+        button.BackgroundColor3 = Color3.fromHSV((t % 5) / 5, 1, 1)
     end
 end)
 
--- Loop pra detectar colisão
-game:GetService("RunService").Stepped:Connect(function()
-    if not ativo then return end
-    local char = player.Character
-    if not char then return end
-    local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
+--// Ativar/Desativar
+local killEnabled = false
+button.MouseButton1Click:Connect(function()
+    killEnabled = not killEnabled
+    if killEnabled then
+        button.Text = "KILL: ON"
+    else
+        button.Text = "KILL: OFF"
+    end
+end)
 
-    for _, plr in pairs(game.Players:GetPlayers()) do
-        if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-            local humanoid = plr.Character:FindFirstChildOfClass("Humanoid")
-            local hrpInimigo = plr.Character:FindFirstChild("HumanoidRootPart")
+--// Função de matar players
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
-            if humanoid and hrpInimigo then
-                local distancia = (hrp.Position - hrpInimigo.Position).Magnitude
-                if distancia < 5 then
-                    plr.Character:BreakJoints() -- Mata de verdade
-                end
-            end
+local function killPlayer(target)
+    -- tentativa 1: setar vida
+    if target:FindFirstChild("Humanoid") then
+        target.Humanoid.Health = 0
+    end
+    -- tentativa 2: destruir character
+    for _, part in ipairs(target:GetChildren()) do
+        if part:IsA("BasePart") then
+            part:Destroy()
         end
     end
-end)
+end
 
--- Efeito Rainbow 🌈
-spawn(function()
-    local hue = 0
-    while true do
-        hue = (hue + 0.01) % 1
-        local cor = Color3.fromHSV(hue, 1, 1)
-        frame.BackgroundColor3 = cor
-        button.BackgroundColor3 = cor
-        wait(0.05)
-    end
+--// Detectar toque
+LocalPlayer.CharacterAdded:Connect(function(char)
+    local hrp = char:WaitForChild("HumanoidRootPart")
+
+    hrp.Touched:Connect(function(hit)
+        if killEnabled then
+            local targetPlayer = Players:GetPlayerFromCharacter(hit.Parent)
+            if targetPlayer and targetPlayer ~= LocalPlayer then
+                killPlayer(hit.Parent)
+            end
+        end
+    end)
 end)
