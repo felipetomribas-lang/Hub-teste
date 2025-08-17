@@ -1,4 +1,4 @@
--- Hub Mobile Delta Executor Melhorado com Seções e TP
+-- Hub Mobile Delta Executor - Layout maior e bonito
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -22,26 +22,28 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 220, 0, 40)
-frame.Position = UDim2.new(0.5, -110, 0.1, 0)
-frame.BackgroundColor3 = Color3.fromRGB(40,40,40)
+frame.Size = UDim2.new(0, 300, 0, 350)
+frame.Position = UDim2.new(0.5, -150, 0.1, 0)
+frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+frame.BorderSizePixel = 2
 frame.Active = true
 frame.Draggable = true
 frame.Parent = ScreenGui
 
--- Rainbow
-local rainbow = true
-RunService.RenderStepped:Connect(function()
-    if rainbow then
-        local r = tick()%1
-        frame.BackgroundColor3 = Color3.fromHSV(r,0.7,0.9)
-    end
-end)
+-- Título
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,0,0,40)
+title.Position = UDim2.new(0,0,0,0)
+title.BackgroundTransparency = 1
+title.Text = "Mobile Fly Hub"
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.TextScaled = true
+title.Parent = frame
 
 -- Função criar botão
 local function createButton(text, y)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.8,0,0,40)
+    btn.Size = UDim2.new(0.8,0,0,35)
     btn.Position = UDim2.new(0.1,0,y,0)
     btn.BackgroundColor3 = Color3.fromRGB(255,0,0)
     btn.TextColor3 = Color3.fromRGB(255,255,255)
@@ -51,13 +53,22 @@ local function createButton(text, y)
     return btn
 end
 
--- Botões principais
-local flyBtn = createButton("Fly: OFF", 40)
-local noclipBtn = createButton("Noclip: OFF", 90)
+-- Botões
+local flyBtn = createButton("Fly: OFF", 50)
+local noclipBtn = createButton("Noclip: OFF", 95)
 local godBtn = createButton("GodMode: OFF", 140)
-local speedBtn = createButton("Speed: 16", 190)
-local jumpBtn = createButton("Jump: 50", 240)
-local tpBtn = createButton("TP: OFF", 290)
+local speedBtn = createButton("Speed: 16", 185)
+local jumpBtn = createButton("Jump: 50", 230)
+local tpBtn = createButton("TP: OFF", 275)
+
+-- Rainbow opcional
+local rainbow = true
+RunService.RenderStepped:Connect(function()
+    if rainbow then
+        local r = tick()%1
+        frame.BackgroundColor3 = Color3.fromHSV(r,0.7,0.9)
+    end
+end)
 
 -- Funções
 local flying = false
@@ -102,7 +113,6 @@ jumpBtn.MouseButton1Click:Connect(function()
     Humanoid.JumpPower = jumpValue
 end)
 
--- TP Button
 tpBtn.MouseButton1Click:Connect(function()
     tpEnabled = not tpEnabled
     tpBtn.Text = tpEnabled and "TP: ON" or "TP: OFF"
