@@ -1,4 +1,4 @@
--- Hub Kill ao Tocar (executor) - Final
+-- Hub Kill ao Tocar (Delta Executor)
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
@@ -6,14 +6,15 @@ local LocalPlayer = Players.LocalPlayer
 -- Verifica RemoteEvent
 local KillEvent = ReplicatedStorage:FindFirstChild("KillEvent")
 if not KillEvent then
-    warn("KillEvent não encontrado no ReplicatedStorage! Crie um RemoteEvent chamado 'KillEvent'.")
+    warn("KillEvent não encontrado! Crie um RemoteEvent chamado 'KillEvent'.")
     return
 end
 
--- Criar GUI
+-- Criar GUI diretamente no CoreGui
 local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "HubTesteDelta"
 ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.Parent = game:GetService("CoreGui") -- CoreGui funciona melhor no Delta
 
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 220, 0, 100)
@@ -32,17 +33,14 @@ button.Text = "Ativar Kill"
 button.TextScaled = true
 button.Parent = frame
 
+-- Ativar/Desativar Kill
 local killEnabled = false
 button.MouseButton1Click:Connect(function()
     killEnabled = not killEnabled
-    if killEnabled then
-        button.Text = "Kill: ON"
-    else
-        button.Text = "Ativar Kill"
-    end
+    button.Text = killEnabled and "Kill: ON" or "Ativar Kill"
 end)
 
--- Função para setup de toque
+-- Função de Kill ao tocar
 local function setupCharacter(char)
     local hrp = char:WaitForChild("HumanoidRootPart")
     hrp.Touched:Connect(function(hit)
@@ -55,7 +53,7 @@ local function setupCharacter(char)
     end)
 end
 
--- Setup inicial e respawn
+-- Configuração inicial e respawn
 if LocalPlayer.Character then
     setupCharacter(LocalPlayer.Character)
 end
