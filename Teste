@@ -1,4 +1,4 @@
--- Hub Mobile/Delta Executor Melhorado - Fly/Noclip/TP/GodMode/Speed/Jump
+-- Hub Mobile Delta Executor Melhorado com Seções e TP
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -7,26 +7,36 @@ local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 local HRP = Character:WaitForChild("HumanoidRootPart")
 
--- ======= SETTINGS =======
+-- SETTINGS
 local flySpeed = 50
 local noclipEnabled = false
 local godModeEnabled = false
 local speedValue = 16
 local jumpValue = 50
+local tpEnabled = false
 
--- ======= GUI =======
+-- GUI
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "MobileFlyHub"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 220, 0, 60)
+frame.Size = UDim2.new(0, 220, 0, 40)
 frame.Position = UDim2.new(0.5, -110, 0.1, 0)
 frame.BackgroundColor3 = Color3.fromRGB(40,40,40)
 frame.Active = true
 frame.Draggable = true
 frame.Parent = ScreenGui
+
+-- Rainbow
+local rainbow = true
+RunService.RenderStepped:Connect(function()
+    if rainbow then
+        local r = tick()%1
+        frame.BackgroundColor3 = Color3.fromHSV(r,0.7,0.9)
+    end
+end)
 
 -- Função criar botão
 local function createButton(text, y)
@@ -42,31 +52,20 @@ local function createButton(text, y)
 end
 
 -- Botões principais
-local flyBtn = createButton("Fly: OFF", 0)
-local noclipBtn = createButton("Noclip: OFF", 0)
-local godBtn = createButton("GodMode: OFF", 0)
-local speedBtn = createButton("Speed: 16", 0)
-local jumpBtn = createButton("Jump: 50", 0)
+local flyBtn = createButton("Fly: OFF", 40)
+local noclipBtn = createButton("Noclip: OFF", 90)
+local godBtn = createButton("GodMode: OFF", 140)
+local speedBtn = createButton("Speed: 16", 190)
+local jumpBtn = createButton("Jump: 50", 240)
+local tpBtn = createButton("TP: OFF", 290)
 
--- Rainbow opcional
-local rainbow = true
-RunService.RenderStepped:Connect(function(dt)
-    if rainbow then
-        local r = tick()%1
-        frame.BackgroundColor3 = Color3.fromHSV(r,0.7,0.9)
-    end
-end)
-
--- ======= FUNCTIONS =======
-
--- Fly
+-- Funções
 local flying = false
 flyBtn.MouseButton1Click:Connect(function()
     flying = not flying
     flyBtn.Text = flying and "Fly: ON" or "Fly: OFF"
 end)
 
--- Noclip
 noclipBtn.MouseButton1Click:Connect(function()
     noclipEnabled = not noclipEnabled
     noclipBtn.Text = noclipEnabled and "Noclip: ON" or "Noclip: OFF"
@@ -82,7 +81,6 @@ RunService.Stepped:Connect(function()
     end
 end)
 
--- GodMode
 godBtn.MouseButton1Click:Connect(function()
     godModeEnabled = not godModeEnabled
     godBtn.Text = godModeEnabled and "GodMode: ON" or "GodMode: OFF"
@@ -90,7 +88,6 @@ godBtn.MouseButton1Click:Connect(function()
     Humanoid.Health = Humanoid.MaxHealth
 end)
 
--- Speed
 speedBtn.MouseButton1Click:Connect(function()
     speedValue = speedValue + 16
     if speedValue > 100 then speedValue = 16 end
@@ -98,7 +95,6 @@ speedBtn.MouseButton1Click:Connect(function()
     Humanoid.WalkSpeed = speedValue
 end)
 
--- Jump
 jumpBtn.MouseButton1Click:Connect(function()
     jumpValue = jumpValue + 25
     if jumpValue > 200 then jumpValue = 50 end
@@ -106,7 +102,13 @@ jumpBtn.MouseButton1Click:Connect(function()
     Humanoid.JumpPower = jumpValue
 end)
 
--- Fly movement
+-- TP Button
+tpBtn.MouseButton1Click:Connect(function()
+    tpEnabled = not tpEnabled
+    tpBtn.Text = tpEnabled and "TP: ON" or "TP: OFF"
+end)
+
+-- Fly Movement
 local flyDirection = Vector3.new(0,0,0)
 UserInputService.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.Keyboard then
@@ -131,13 +133,11 @@ RunService.RenderStepped:Connect(function(dt)
     end
 end)
 
--- Teleport clicando na tela (mobile)
+-- Teleporte clicando na tela
 local mouse = LocalPlayer:GetMouse()
 mouse.Button1Down:Connect(function()
-    if UserInputService.TouchEnabled then
+    if tpEnabled and UserInputService.TouchEnabled then
         local pos = mouse.Hit.p
         HRP.CFrame = CFrame.new(pos + Vector3.new(0,3,0))
     end
 end)
-
--- ======= END =======
