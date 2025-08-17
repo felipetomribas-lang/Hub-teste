@@ -1,94 +1,23 @@
--- EB HUB OP MOBILE - by Felipe 💙
--- Hub otimizado para celular
-
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "EBHubOPMobile"
-ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-ScreenGui.ResetOnSpawn = false
-
-local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0.8, 0, 0.5, 0) -- ocupa 80% da largura e 50% da altura
-Main.Position = UDim2.new(0.1, 0, 0.25, 0)
-Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-Main.Active = true
-Main.Draggable = true
-Main.Parent = ScreenGui
-Main.ClipsDescendants = true
-
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 50)
-Title.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-Title.Text = "EB HUB OP MOBILE"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.Font = Enum.Font.SourceSansBold
-Title.TextSize = 24
-Title.Parent = Main
-
--- Função criar botões grandes para touch
-local function CreateBtn(text, yPos, color)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.9, 0, 0, 60)
-    btn.Position = UDim2.new(0.05, 0, 0, yPos)
-    btn.BackgroundColor3 = color or Color3.fromRGB(0, 170, 255)
-    btn.Text = text
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.Font = Enum.Font.SourceSansBold
-    btn.TextSize = 22
-    btn.Parent = Main
-    return btn
-end
-
--- Botões
-local AutoFlyBtn = CreateBtn("Ir Voando até a Base", 70, Color3.fromRGB(0,200,100))
-local NoclipBtn = CreateBtn("Ativar Noclip", 150, Color3.fromRGB(255,120,0))
-local AntiVoidBtn = CreateBtn("Ativar AntiVoid", 230, Color3.fromRGB(200,0,200))
-
--- Variáveis
+-- Mostra a posição atual no canto da tela
 local player = game.Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
 local hrp = char:WaitForChild("HumanoidRootPart")
-local noclip = false
-local antivoid = false
 
---// Função Auto-voar até a base
-local destinoBase = Vector3.new(0, 20, 0) -- <<< TROQUE PARA A POSIÇÃO DA SUA BASE
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
 
-local function FlyToBase()
-    while (hrp.Position - destinoBase).Magnitude > 5 do
-        task.wait(0.05)
-        local direcao = (destinoBase - hrp.Position).Unit
-        hrp.CFrame = CFrame.new(hrp.Position + direcao * 3, destinoBase)
-    end
-end
+local PosLabel = Instance.new("TextLabel")
+PosLabel.Size = UDim2.new(0, 250, 0, 50)
+PosLabel.Position = UDim2.new(0, 10, 0, 10)
+PosLabel.BackgroundTransparency = 0.5
+PosLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+PosLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+PosLabel.Font = Enum.Font.SourceSansBold
+PosLabel.TextSize = 18
+PosLabel.Parent = ScreenGui
 
-AutoFlyBtn.MouseButton1Click:Connect(function()
-    FlyToBase()
-end)
-
---// Noclip
-NoclipBtn.MouseButton1Click:Connect(function()
-    noclip = not noclip
-    NoclipBtn.Text = noclip and "Desativar Noclip" or "Ativar Noclip"
-end)
-
-game:GetService("RunService").Stepped:Connect(function()
-    if noclip and char then
-        for _, part in pairs(char:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = false
-            end
-        end
-    end
-end)
-
---// Anti-Void
-AntiVoidBtn.MouseButton1Click:Connect(function()
-    antivoid = not antivoid
-    AntiVoidBtn.Text = antivoid and "Desativar AntiVoid" or "Ativar AntiVoid"
-end)
-
-game:GetService("RunService").Heartbeat:Connect(function()
-    if antivoid and hrp.Position.Y < -10 then
-        hrp.CFrame = CFrame.new(Vector3.new(0, 20, 0)) -- <<< POSIÇÃO SEGURA
-    end
+game:GetService("RunService").RenderStepped:Connect(function()
+    PosLabel.Text = "X: "..math.floor(hrp.Position.X).. 
+                    " Y: "..math.floor(hrp.Position.Y)..
+                    " Z: "..math.floor(hrp.Position.Z)
 end)
