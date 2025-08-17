@@ -2,7 +2,7 @@ local player = game.Players.LocalPlayer
 
 -- GUI simples e movível
 local gui = Instance.new("ScreenGui")
-gui.Name = "HubMovel"
+gui.Name = "HubKillTouch"
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
@@ -18,91 +18,39 @@ button.Size = UDim2.new(0.8, 0, 0, 50)
 button.Position = UDim2.new(0.1, 0, 0.15, 0)
 button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
 button.TextColor3 = Color3.fromRGB(255, 255, 255)
-button.Text = "Voar para minha base"
+button.Text = "Ativar Kill ao Tocar"
 button.Parent = frame
 
--- Bases
-local bases = {
-    Vector3.new(-470.7, -6.5, 219.8),
-    Vector3.new(-469.2, -6.5, 111.4),
-    Vector3.new(-471.9, -6.5, 7.6),
-    Vector3.new(-470.7, -6.5, -99.9),
-    Vector3.new(-348.2, -6.5, -101.3),
-    Vector3.new(-348.2, -6.5, 7.7),
-    Vector3.new(-350.1, -6.5, 113.8),
-    Vector3.new(-348.3, -6.5, 218.0)
-}
+local ativo = false
 
--- Base mais próxima
-local function baseMaisProxima()
-    local char = player.Character
-    if not char then return nil end
-    local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return nil end
-    local pos = hrp.Position
-    local maisProxima = bases[1]
-    local menorDist = (pos - bases[1]).Magnitude
-    for i = 2, #bases do
-        local dist = (pos - bases[i]).Magnitude
-        if dist < menorDist then
-            menorDist = dist
-            maisProxima = bases[i]
-        end
+-- Função para ativar/desativar kill ao tocar
+button.MouseButton1Click:Connect(function()
+    ativo = not ativo
+    if ativo then
+        button.Text = "Kill ao Tocar: Ativo"
+    else
+        button.Text = "Ativar Kill ao Tocar"
     end
-    return maisProxima
-end
+end)
 
--- Função de voo turbo invencível sem ragdoll
-local function voarParaBase()
+-- Checa toque em qualquer personagem
+game:GetService("RunService").Stepped:Connect(function()
+    if not ativo then return end
     local char = player.Character
     if not char then return end
     local hrp = char:FindFirstChild("HumanoidRootPart")
-    local humanoid = char:FindFirstChildOfClass("Humanoid")
-    if not hrp or not humanoid then return end
+    if not hrp then return end
 
-    -- Godmode e proteção contra ragdoll
-    humanoid.PlatformStand = true
-    humanoid.Health = humanoid.MaxHealth
-    humanoid.NameDisplayDistance = 0
-    humanoid:ChangeState(Enum.HumanoidStateType.Physics)
-    
-    -- Remove ragdoll: força o Humanoid a ficar ativo
-    local states = {Enum.HumanoidStateType.FallingDown, Enum.HumanoidStateType.Ragdoll, Enum.HumanoidStateType.GettingUp}
-    for _, state in pairs(states) do
-        humanoid.StateChanged:Connect(function(_, newState)
-            if newState == state then
-                humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+    for _, plr in pairs(game.Players:GetPlayers()) do
+        if plr ~= player and plr.Character then
+            local humanoid = plr.Character:FindFirstChildOfClass("Humanoid")
+            local hrpInimigo = plr.Character:FindFirstChild("HumanoidRootPart")
+            if humanoid and hrpInimigo then
+                local distancia = (hrp.Position - hrpInimigo.Position).Magnitude
+                if distancia < 5 then -- distância de toque
+                    humanoid.Health = 0
+                end
             end
-        end)
-    end
-
-    -- BodyVelocity para voo turbo
-    local bv = Instance.new("BodyVelocity")
-    bv.MaxForce = Vector3.new(1e6,1e6,1e6)
-    bv.Velocity = Vector3.new(0,0,0)
-    bv.Parent = hrp
-
-    local destino = baseMaisProxima()
-    if not destino then return end
-
-    local velocidadeTurbo = 300 -- super rápido
-    local run = true
-    spawn(function()
-        while run do
-            humanoid.Health = humanoid.MaxHealth
-            local direcao = (destino - hrp.Position)
-            if direcao.Magnitude < 2 then
-                run = false
-                break
-            end
-            bv.Velocity = direcao.Unit * velocidadeTurbo
-            wait(0.03)
         end
-    end)
-
-    repeat wait() until not run
-    bv:Destroy()
-    humanoid.PlatformStand = false
-end
-
-button.MouseButton1Click:Connect(voarParaBase)
+    end
+end)
