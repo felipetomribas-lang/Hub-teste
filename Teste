@@ -1,4 +1,4 @@
--- Hub Kill ao Tocar (executor)
+-- Hub Kill ao Tocar (executor) - Final
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
@@ -42,7 +42,7 @@ button.MouseButton1Click:Connect(function()
     end
 end)
 
--- Detectar toque e enviar para RemoteEvent
+-- Função para setup de toque
 local function setupCharacter(char)
     local hrp = char:WaitForChild("HumanoidRootPart")
     hrp.Touched:Connect(function(hit)
@@ -55,8 +55,8 @@ local function setupCharacter(char)
     end)
 end
 
+-- Setup inicial e respawn
 if LocalPlayer.Character then
     setupCharacter(LocalPlayer.Character)
 end
-
 LocalPlayer.CharacterAdded:Connect(setupCharacter)
