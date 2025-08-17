@@ -1,22 +1,73 @@
-local player = game.Players.LocalPlayer
-local char = player.Character or player.CharacterAdded:Wait()
-local hrp = char:WaitForChild("HumanoidRootPart")
-
+-- GUI básica
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "PosDisplay"
-ScreenGui.Parent = player:WaitForChild("PlayerGui")
+ScreenGui.Name = "HubBaseGui"
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
-local PosLabel = Instance.new("TextLabel")
-PosLabel.Size = UDim2.new(0, 300, 0, 50)
-PosLabel.Position = UDim2.new(0, 10, 0, 10)
-PosLabel.BackgroundTransparency = 0.5
-PosLabel.BackgroundColor3 = Color3.fromRGB(0,0,0)
-PosLabel.TextColor3 = Color3.fromRGB(255,255,255)
-PosLabel.Font = Enum.Font.SourceSansBold
-PosLabel.TextSize = 18
-PosLabel.Text = "X: 0, Y: 0, Z: 0"
-PosLabel.Parent = ScreenGui
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 250, 0, 200)
+Frame.Position = UDim2.new(0.5, -125, 0.5, -100)
+Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+Frame.Parent = ScreenGui
 
-game:GetService("RunService").RenderStepped:Connect(function()
-    PosLabel.Text = string.format("X: %.1f, Y: %.1f, Z: %.1f", hrp.Position.X, hrp.Position.Y, hrp.Position.Z)
-end)
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+Title.Text = "Hub de Bases"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Parent = Frame
+
+-- Botão de voar para base atual
+local Button = Instance.new("TextButton")
+Button.Size = UDim2.new(0.8, 0, 0, 50)
+Button.Position = UDim2.new(0.1, 0, 0.3, 0)
+Button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+Button.Text = "Voar para minha base"
+Button.Parent = Frame
+
+-- Lista de bases
+local bases = {
+    CFrame.new(-470.7, -6.5, 219.8),
+    CFrame.new(-469.2, -6.5, 111.4),
+    CFrame.new(-471.9, -6.5, 7.6),
+    CFrame.new(-470.7, -6.5, -99.9),
+    CFrame.new(-348.2, -6.5, -101.3),
+    CFrame.new(-348.2, -6.5, 7.7),
+    CFrame.new(-350.1, -6.5, 113.8),
+    CFrame.new(-348.3, -6.5, 218.0)
+}
+
+-- Função para identificar a base mais próxima
+local function baseMaisProxima()
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    if not character then return nil end
+    local root = character:FindFirstChild("HumanoidRootPart")
+    if not root then return nil end
+
+    local pos = root.Position
+    local maisProxima = bases[1]
+    local menorDist = (pos - bases[1].Position).Magnitude
+
+    for i = 2, #bases do
+        local dist = (pos - bases[i].Position).Magnitude
+        if dist < menorDist then
+            menorDist = dist
+            maisProxima = bases[i]
+        end
+    end
+
+    return maisProxima
+end
+
+-- Função de voar
+local function voarParaBase()
+    local player = game.Players.LocalPlayer
+    local base = baseMaisProxima()
+    if base then
+        player.Character.HumanoidRootPart.CFrame = base
+    end
+end
+
+-- Conecta o botão
+Button.MouseButton1Click:Connect(voarParaBase)
