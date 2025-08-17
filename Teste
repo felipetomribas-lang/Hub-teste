@@ -1,88 +1,71 @@
--- EB HUB OP - by Felipe
--- Hub estilo exploit, mas feito só pro seu jogo EB DO FELIPE
+-- EB HUB OP MOBILE - by Felipe 💙
+-- Hub otimizado para celular
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "EBHubOP"
+ScreenGui.Name = "EBHubOPMobile"
 ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ResetOnSpawn = false
 
 local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 220, 0, 260)
-Main.Position = UDim2.new(0.5, -110, 0.5, -130)
+Main.Size = UDim2.new(0.8, 0, 0.5, 0) -- ocupa 80% da largura e 50% da altura
+Main.Position = UDim2.new(0.1, 0, 0.25, 0)
 Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Main.Active = true
 Main.Draggable = true
 Main.Parent = ScreenGui
+Main.ClipsDescendants = true
 
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 30)
+Title.Size = UDim2.new(1, 0, 0, 50)
 Title.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-Title.Text = "EB HUB OP"
+Title.Text = "EB HUB OP MOBILE"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold
-Title.TextSize = 18
+Title.TextSize = 24
 Title.Parent = Main
 
--- Criador de botões
+-- Função criar botões grandes para touch
 local function CreateBtn(text, yPos, color)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -20, 0, 40)
-    btn.Position = UDim2.new(0, 10, 0, yPos)
+    btn.Size = UDim2.new(0.9, 0, 0, 60)
+    btn.Position = UDim2.new(0.05, 0, 0, yPos)
     btn.BackgroundColor3 = color or Color3.fromRGB(0, 170, 255)
     btn.Text = text
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.SourceSansBold
-    btn.TextSize = 16
+    btn.TextSize = 22
     btn.Parent = Main
     return btn
 end
 
 -- Botões
-local FlyBtn = CreateBtn("Ativar Voo", 40, Color3.fromRGB(0,170,255))
-local TpBtn = CreateBtn("Teleportar Base", 90, Color3.fromRGB(0,200,100))
-local NoclipBtn = CreateBtn("Ativar Noclip", 140, Color3.fromRGB(255,120,0))
-local AntiVoidBtn = CreateBtn("Ativar AntiVoid", 190, Color3.fromRGB(200,0,200))
+local AutoFlyBtn = CreateBtn("Ir Voando até a Base", 70, Color3.fromRGB(0,200,100))
+local NoclipBtn = CreateBtn("Ativar Noclip", 150, Color3.fromRGB(255,120,0))
+local AntiVoidBtn = CreateBtn("Ativar AntiVoid", 230, Color3.fromRGB(200,0,200))
 
 -- Variáveis
 local player = game.Players.LocalPlayer
 local char = player.Character or player.CharacterAdded:Wait()
 local hrp = char:WaitForChild("HumanoidRootPart")
-local flying = false
 local noclip = false
 local antivoid = false
-local flySpeed = 100
 
--- Voo
-FlyBtn.MouseButton1Click:Connect(function()
-    flying = not flying
-    FlyBtn.Text = flying and "Desativar Voo" or "Ativar Voo"
+--// Função Auto-voar até a base
+local destinoBase = Vector3.new(0, 20, 0) -- <<< TROQUE PARA A POSIÇÃO DA SUA BASE
 
-    while flying do
-        task.wait()
-        local cam = workspace.CurrentCamera
-        local moveDir = Vector3.zero
-        if game.UserInputService:IsKeyDown(Enum.KeyCode.W) then
-            moveDir = moveDir + cam.CFrame.LookVector
-        end
-        if game.UserInputService:IsKeyDown(Enum.KeyCode.S) then
-            moveDir = moveDir - cam.CFrame.LookVector
-        end
-        if game.UserInputService:IsKeyDown(Enum.KeyCode.A) then
-            moveDir = moveDir - cam.CFrame.RightVector
-        end
-        if game.UserInputService:IsKeyDown(Enum.KeyCode.D) then
-            moveDir = moveDir + cam.CFrame.RightVector
-        end
-        hrp.Velocity = moveDir.Unit * flySpeed
+local function FlyToBase()
+    while (hrp.Position - destinoBase).Magnitude > 5 do
+        task.wait(0.05)
+        local direcao = (destinoBase - hrp.Position).Unit
+        hrp.CFrame = CFrame.new(hrp.Position + direcao * 3, destinoBase)
     end
-    hrp.Velocity = Vector3.zero
+end
+
+AutoFlyBtn.MouseButton1Click:Connect(function()
+    FlyToBase()
 end)
 
--- Teleporte (troque a posição pela base do SEU jogo)
-TpBtn.MouseButton1Click:Connect(function()
-    hrp.CFrame = CFrame.new(Vector3.new(0, 10, 0)) -- <<< COORDS DA BASE
-end)
-
--- Noclip
+--// Noclip
 NoclipBtn.MouseButton1Click:Connect(function()
     noclip = not noclip
     NoclipBtn.Text = noclip and "Desativar Noclip" or "Ativar Noclip"
@@ -98,7 +81,7 @@ game:GetService("RunService").Stepped:Connect(function()
     end
 end)
 
--- Anti-Void
+--// Anti-Void
 AntiVoidBtn.MouseButton1Click:Connect(function()
     antivoid = not antivoid
     AntiVoidBtn.Text = antivoid and "Desativar AntiVoid" or "Ativar AntiVoid"
@@ -106,6 +89,6 @@ end)
 
 game:GetService("RunService").Heartbeat:Connect(function()
     if antivoid and hrp.Position.Y < -10 then
-        hrp.CFrame = CFrame.new(Vector3.new(0, 10, 0)) -- <<< POSIÇÃO SEGURA
+        hrp.CFrame = CFrame.new(Vector3.new(0, 20, 0)) -- <<< POSIÇÃO SEGURA
     end
 end)
