@@ -1,64 +1,73 @@
---// Gui Principal
+-- Hub Rainbow + Kill ao Tocar (executor)
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+-- Verifica RemoteEvent (deve existir no jogo)
+local KillEvent = ReplicatedStorage:FindFirstChild("KillEvent")
+if not KillEvent then
+    warn("KillEvent não encontrado no ReplicatedStorage! Crie um RemoteEvent chamado 'KillEvent'.")
+    return
+end
+
+-- Criar GUI
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Parent = game.CoreGui
 
-local button = Instance.new("TextButton")
-button.Size = UDim2.new(0, 150, 0, 50)
-button.Position = UDim2.new(0.5, -75, 0.9, -25)
-button.Text = "KILL MODE"
-button.TextScaled = true
-button.BackgroundColor3 = Color3.fromRGB(255,0,0)
-button.TextColor3 = Color3.fromRGB(255,255,255)
-button.Parent = ScreenGui
-button.BorderSizePixel = 0
-button.AutoButtonColor = true
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 220, 0, 100)
+frame.Position = UDim2.new(0.5, -110, 0.5, -50)
+frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+frame.Active = true
+frame.Draggable = true
+frame.Parent = ScreenGui
 
---// Rainbow
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0.8, 0, 0, 60)
+button.Position = UDim2.new(0.1, 0, 0.2, 0)
+button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+button.Text = "Ativar Kill"
+button.TextScaled = true
+button.Parent = frame
+
+-- Rainbow effect
 task.spawn(function()
-    while task.wait(0.1) do
-        local t = tick()
-        button.BackgroundColor3 = Color3.fromHSV((t % 5) / 5, 1, 1)
+    local hue = 0
+    while true do
+        hue = (hue + 0.01) % 1
+        local cor = Color3.fromHSV(hue, 1, 1)
+        frame.BackgroundColor3 = cor
+        button.BackgroundColor3 = cor
+        task.wait(0.05)
     end
 end)
 
---// Ativar/Desativar
 local killEnabled = false
 button.MouseButton1Click:Connect(function()
     killEnabled = not killEnabled
     if killEnabled then
-        button.Text = "KILL: ON"
+        button.Text = "Kill: ON"
     else
-        button.Text = "KILL: OFF"
+        button.Text = "Ativar Kill"
     end
 end)
 
---// Função de matar players
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
-local function killPlayer(target)
-    -- tentativa 1: setar vida
-    if target:FindFirstChild("Humanoid") then
-        target.Humanoid.Health = 0
-    end
-    -- tentativa 2: destruir character
-    for _, part in ipairs(target:GetChildren()) do
-        if part:IsA("BasePart") then
-            part:Destroy()
-        end
-    end
-end
-
---// Detectar toque
-LocalPlayer.CharacterAdded:Connect(function(char)
+-- Detectar toque e enviar para RemoteEvent
+local function setupCharacter(char)
     local hrp = char:WaitForChild("HumanoidRootPart")
-
     hrp.Touched:Connect(function(hit)
         if killEnabled then
             local targetPlayer = Players:GetPlayerFromCharacter(hit.Parent)
             if targetPlayer and targetPlayer ~= LocalPlayer then
-                killPlayer(hit.Parent)
+                KillEvent:FireServer(hit.Parent)
             end
         end
     end)
-end)
+end
+
+if LocalPlayer.Character then
+    setupCharacter(LocalPlayer.Character)
+end
+
+LocalPlayer.CharacterAdded:Connect(setupCharacter)
