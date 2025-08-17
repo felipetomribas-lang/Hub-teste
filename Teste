@@ -1,4 +1,4 @@
--- Hub Mobile Delta Executor - Paginado, Toggle e Funções
+-- Hub Mobile Delta Executor - Funcional e Paginado
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -14,6 +14,8 @@ local godModeEnabled = false
 local speedValue = 16
 local jumpValue = 50
 local tpEnabled = false
+local flying = false
+local flyDirection = Vector3.new(0,0,0)
 local page = 1
 
 -- GUI
@@ -52,7 +54,7 @@ title.TextColor3 = Color3.fromRGB(255,255,255)
 title.TextScaled = true
 title.Parent = frame
 
--- Página Navigation
+-- Navegação de páginas
 local prevBtn = Instance.new("TextButton")
 prevBtn.Size = UDim2.new(0,50,0,30)
 prevBtn.Position = UDim2.new(0,10,1,-40)
@@ -82,7 +84,7 @@ local function createButton(text, y, parent)
     return btn
 end
 
--- Funções: Criar todas as páginas
+-- Criar páginas
 local pages = {}
 for i=1,2 do
     local pg = Instance.new("Frame")
@@ -94,12 +96,12 @@ for i=1,2 do
     pages[i] = pg
 end
 
--- Página 1: Fly, Noclip, GodMode
+-- Página 1
 local flyBtn = createButton("Fly: OFF", 0, pages[1])
 local noclipBtn = createButton("Noclip: OFF", 50, pages[1])
 local godBtn = createButton("GodMode: OFF", 100, pages[1])
 
--- Página 2: Speed, Jump, TP
+-- Página 2
 local speedBtn = createButton("Speed: 16", 0, pages[2])
 local jumpBtn = createButton("Jump: 50", 50, pages[2])
 local tpBtn = createButton("TP: OFF", 100, pages[2])
@@ -132,7 +134,6 @@ RunService.RenderStepped:Connect(function()
 end)
 
 -- Funções dos botões
-local flying = false
 flyBtn.MouseButton1Click:Connect(function()
     flying = not flying
     flyBtn.Text = flying and "Fly: ON" or "Fly: OFF"
@@ -141,16 +142,6 @@ end)
 noclipBtn.MouseButton1Click:Connect(function()
     noclipEnabled = not noclipEnabled
     noclipBtn.Text = noclipEnabled and "Noclip: ON" or "Noclip: OFF"
-end)
-
-RunService.Stepped:Connect(function()
-    if noclipEnabled then
-        for _, part in pairs(Character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = false
-            end
-        end
-    end
 end)
 
 godBtn.MouseButton1Click:Connect(function()
@@ -180,31 +171,29 @@ tpBtn.MouseButton1Click:Connect(function()
 end)
 
 -- Fly Movement
-local flyDirection = Vector3.new(0,0,0)
-UserInputService.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.Keyboard then
-        if input.KeyCode == Enum.KeyCode.W then flyDirection = flyDirection + Vector3.new(0,0,-1) end
-        if input.KeyCode == Enum.KeyCode.S then flyDirection = flyDirection + Vector3.new(0,0,1) end
-        if input.KeyCode == Enum.KeyCode.A then flyDirection = flyDirection + Vector3.new(-1,0,0) end
-        if input.KeyCode == Enum.KeyCode.D then flyDirection = flyDirection + Vector3.new(1,0,0) end
-        if input.KeyCode == Enum.KeyCode.Space then flyDirection = flyDirection + Vector3.new(0,1,0) end
-        if input.KeyCode == Enum.KeyCode.LeftShift then flyDirection = flyDirection + Vector3.new(0,-1,0) end
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.Keyboard then
-        flyDirection = Vector3.new(0,0,0)
-    end
-end)
-
 RunService.RenderStepped:Connect(function(dt)
     if flying then
-        HRP.CFrame = HRP.CFrame + flyDirection.Unit * flySpeed * dt
+        local move = Vector3.new()
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then move = move + Vector3.new(0,0,-1) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then move = move + Vector3.new(0,0,1) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then move = move + Vector3.new(-1,0,0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then move = move + Vector3.new(1,0,0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then move = move + Vector3.new(0,1,0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then move = move + Vector3.new(0,-1,0) end
+        if move.Magnitude > 0 then
+            HRP.CFrame = HRP.CFrame + move.Unit * flySpeed * dt
+        end
+    end
+    if noclipEnabled then
+        for _, part in pairs(Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
     end
 end)
 
--- Teleporte clicando na tela
+-- Teleporte clicando
 local mouse = LocalPlayer:GetMouse()
 mouse.Button1Down:Connect(function()
     if tpEnabled and UserInputService.TouchEnabled then
