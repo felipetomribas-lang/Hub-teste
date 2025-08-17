@@ -1,29 +1,25 @@
 local player = game.Players.LocalPlayer
 
--- GUI simples e movível
-local gui = Instance.new("ScreenGui")
-gui.Name = "HubKillTouch"
-gui.Parent = player:WaitForChild("PlayerGui")
-
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 200, 0, 80)
-frame.Position = UDim2.new(0.5, -100, 0.5, -40)
+-- Criar Hub
+local gui = Instance.new("ScreenGui", player.PlayerGui)
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 220, 0, 100)
+frame.Position = UDim2.new(0.5, -110, 0.5, -50)
 frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 frame.Active = true
 frame.Draggable = true
-frame.Parent = gui
 
-local button = Instance.new("TextButton")
-button.Size = UDim2.new(0.8, 0, 0, 50)
-button.Position = UDim2.new(0.1, 0, 0.15, 0)
+local button = Instance.new("TextButton", frame)
+button.Size = UDim2.new(0.8, 0, 0, 60)
+button.Position = UDim2.new(0.1, 0, 0.2, 0)
 button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
 button.TextColor3 = Color3.fromRGB(255, 255, 255)
 button.Text = "Ativar Kill ao Tocar"
-button.Parent = frame
+button.Font = Enum.Font.SourceSansBold
+button.TextScaled = true
 
 local ativo = false
 
--- Função para ativar/desativar kill ao tocar
 button.MouseButton1Click:Connect(function()
     ativo = not ativo
     if ativo then
@@ -33,7 +29,7 @@ button.MouseButton1Click:Connect(function()
     end
 end)
 
--- Checa toque em qualquer personagem
+-- Loop pra detectar colisão
 game:GetService("RunService").Stepped:Connect(function()
     if not ativo then return end
     local char = player.Character
@@ -42,15 +38,28 @@ game:GetService("RunService").Stepped:Connect(function()
     if not hrp then return end
 
     for _, plr in pairs(game.Players:GetPlayers()) do
-        if plr ~= player and plr.Character then
+        if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
             local humanoid = plr.Character:FindFirstChildOfClass("Humanoid")
             local hrpInimigo = plr.Character:FindFirstChild("HumanoidRootPart")
+
             if humanoid and hrpInimigo then
                 local distancia = (hrp.Position - hrpInimigo.Position).Magnitude
-                if distancia < 5 then -- distância de toque
-                    humanoid.Health = 0
+                if distancia < 5 then
+                    plr.Character:BreakJoints() -- Mata de verdade
                 end
             end
         end
+    end
+end)
+
+-- Efeito Rainbow 🌈
+spawn(function()
+    local hue = 0
+    while true do
+        hue = (hue + 0.01) % 1
+        local cor = Color3.fromHSV(hue, 1, 1)
+        frame.BackgroundColor3 = cor
+        button.BackgroundColor3 = cor
+        wait(0.05)
     end
 end)
