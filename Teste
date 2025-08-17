@@ -1,4 +1,4 @@
--- Hub Mobile Delta Executor - Layout maior e bonito
+-- Hub Mobile Delta Executor - Paginado, Toggle e Funções
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -14,6 +14,7 @@ local godModeEnabled = false
 local speedValue = 16
 local jumpValue = 50
 local tpEnabled = false
+local page = 1
 
 -- GUI
 local ScreenGui = Instance.new("ScreenGui")
@@ -21,14 +22,25 @@ ScreenGui.Name = "MobileFlyHub"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
+-- Toggle Button (abrir/fechar)
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Size = UDim2.new(0,60,0,30)
+toggleBtn.Position = UDim2.new(0,10,0,50)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(255,0,0)
+toggleBtn.Text = "Hub"
+toggleBtn.TextScaled = true
+toggleBtn.Parent = ScreenGui
+
+-- Main Frame
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 300, 0, 350)
+frame.Size = UDim2.new(0, 300, 0, 400)
 frame.Position = UDim2.new(0.5, -150, 0.1, 0)
 frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
 frame.BorderSizePixel = 2
 frame.Active = true
 frame.Draggable = true
 frame.Parent = ScreenGui
+frame.Visible = false
 
 -- Título
 local title = Instance.new("TextLabel")
@@ -40,8 +52,25 @@ title.TextColor3 = Color3.fromRGB(255,255,255)
 title.TextScaled = true
 title.Parent = frame
 
--- Função criar botão
-local function createButton(text, y)
+-- Página Navigation
+local prevBtn = Instance.new("TextButton")
+prevBtn.Size = UDim2.new(0,50,0,30)
+prevBtn.Position = UDim2.new(0,10,1,-40)
+prevBtn.Text = "<"
+prevBtn.TextScaled = true
+prevBtn.BackgroundColor3 = Color3.fromRGB(100,100,100)
+prevBtn.Parent = frame
+
+local nextBtn = Instance.new("TextButton")
+nextBtn.Size = UDim2.new(0,50,0,30)
+nextBtn.Position = UDim2.new(1,-60,1,-40)
+nextBtn.Text = ">"
+nextBtn.TextScaled = true
+nextBtn.BackgroundColor3 = Color3.fromRGB(100,100,100)
+nextBtn.Parent = frame
+
+-- Função criar botão de função
+local function createButton(text, y, parent)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(0.8,0,0,35)
     btn.Position = UDim2.new(0.1,0,y,0)
@@ -49,17 +78,49 @@ local function createButton(text, y)
     btn.TextColor3 = Color3.fromRGB(255,255,255)
     btn.Text = text
     btn.TextScaled = true
-    btn.Parent = frame
+    btn.Parent = parent
     return btn
 end
 
--- Botões
-local flyBtn = createButton("Fly: OFF", 50)
-local noclipBtn = createButton("Noclip: OFF", 95)
-local godBtn = createButton("GodMode: OFF", 140)
-local speedBtn = createButton("Speed: 16", 185)
-local jumpBtn = createButton("Jump: 50", 230)
-local tpBtn = createButton("TP: OFF", 275)
+-- Funções: Criar todas as páginas
+local pages = {}
+for i=1,2 do
+    local pg = Instance.new("Frame")
+    pg.Size = UDim2.new(1,0,1,-50)
+    pg.Position = UDim2.new(0,0,0,40)
+    pg.BackgroundTransparency = 1
+    pg.Parent = frame
+    pg.Visible = i==1
+    pages[i] = pg
+end
+
+-- Página 1: Fly, Noclip, GodMode
+local flyBtn = createButton("Fly: OFF", 0, pages[1])
+local noclipBtn = createButton("Noclip: OFF", 50, pages[1])
+local godBtn = createButton("GodMode: OFF", 100, pages[1])
+
+-- Página 2: Speed, Jump, TP
+local speedBtn = createButton("Speed: 16", 0, pages[2])
+local jumpBtn = createButton("Jump: 50", 50, pages[2])
+local tpBtn = createButton("TP: OFF", 100, pages[2])
+
+-- Toggle Frame
+toggleBtn.MouseButton1Click:Connect(function()
+    frame.Visible = not frame.Visible
+end)
+
+-- Paginação
+prevBtn.MouseButton1Click:Connect(function()
+    page = page - 1
+    if page < 1 then page = #pages end
+    for i,p in pairs(pages) do p.Visible = i==page end
+end)
+
+nextBtn.MouseButton1Click:Connect(function()
+    page = page + 1
+    if page > #pages then page = 1 end
+    for i,p in pairs(pages) do p.Visible = i==page end
+end)
 
 -- Rainbow opcional
 local rainbow = true
@@ -70,7 +131,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Funções
+-- Funções dos botões
 local flying = false
 flyBtn.MouseButton1Click:Connect(function()
     flying = not flying
