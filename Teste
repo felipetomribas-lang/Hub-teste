@@ -1,9 +1,9 @@
--- Hub Rainbow + Kill ao Tocar (executor)
+-- Hub Kill ao Tocar (executor) - botão vermelho
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
--- Verifica RemoteEvent (deve existir no jogo)
+-- Verifica RemoteEvent
 local KillEvent = ReplicatedStorage:FindFirstChild("KillEvent")
 if not KillEvent then
     warn("KillEvent não encontrado no ReplicatedStorage! Crie um RemoteEvent chamado 'KillEvent'.")
@@ -25,23 +25,11 @@ frame.Parent = ScreenGui
 local button = Instance.new("TextButton")
 button.Size = UDim2.new(0.8, 0, 0, 60)
 button.Position = UDim2.new(0.1, 0, 0.2, 0)
-button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+button.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Vermelho fixo
 button.TextColor3 = Color3.fromRGB(255, 255, 255)
 button.Text = "Ativar Kill"
 button.TextScaled = true
 button.Parent = frame
-
--- Rainbow effect
-task.spawn(function()
-    local hue = 0
-    while true do
-        hue = (hue + 0.01) % 1
-        local cor = Color3.fromHSV(hue, 1, 1)
-        frame.BackgroundColor3 = cor
-        button.BackgroundColor3 = cor
-        task.wait(0.05)
-    end
-end)
 
 local killEnabled = false
 button.MouseButton1Click:Connect(function()
