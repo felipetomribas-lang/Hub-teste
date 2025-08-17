@@ -1,73 +1,143 @@
--- Hub Kill ao Tocar (Delta Executor) - Final + Botão Sempre Visível
+-- Hub Mobile/Delta Executor Melhorado - Fly/Noclip/TP/GodMode/Speed/Jump
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local HRP = Character:WaitForChild("HumanoidRootPart")
 
--- Verifica se o RemoteEvent existe
-local KillEvent = ReplicatedStorage:FindFirstChild("KillEvent")
-if not KillEvent then
-    warn("KillEvent não encontrado! Crie um RemoteEvent chamado 'KillEvent' no ReplicatedStorage.")
-    return
+-- ======= SETTINGS =======
+local flySpeed = 50
+local noclipEnabled = false
+local godModeEnabled = false
+local speedValue = 16
+local jumpValue = 50
+
+-- ======= GUI =======
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "MobileFlyHub"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 220, 0, 60)
+frame.Position = UDim2.new(0.5, -110, 0.1, 0)
+frame.BackgroundColor3 = Color3.fromRGB(40,40,40)
+frame.Active = true
+frame.Draggable = true
+frame.Parent = ScreenGui
+
+-- Função criar botão
+local function createButton(text, y)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0.8,0,0,40)
+    btn.Position = UDim2.new(0.1,0,y,0)
+    btn.BackgroundColor3 = Color3.fromRGB(255,0,0)
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.Text = text
+    btn.TextScaled = true
+    btn.Parent = frame
+    return btn
 end
 
--- Função para criar GUI
-local function createGUI()
-    local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "HubTesteDelta"
-    ScreenGui.ResetOnSpawn = false
-    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+-- Botões principais
+local flyBtn = createButton("Fly: OFF", 0)
+local noclipBtn = createButton("Noclip: OFF", 0)
+local godBtn = createButton("GodMode: OFF", 0)
+local speedBtn = createButton("Speed: 16", 0)
+local jumpBtn = createButton("Jump: 50", 0)
 
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 220, 0, 100)
-    frame.Position = UDim2.new(0.5, -110, 0.5, -50)
-    frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    frame.Active = true
-    frame.Draggable = true
-    frame.Parent = ScreenGui
-
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(0.8, 0, 0, 60)
-    button.Position = UDim2.new(0.1, 0, 0.2, 0)
-    button.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.Text = "Ativar Kill"
-    button.TextScaled = true
-    button.Parent = frame
-
-    local killEnabled = false
-    button.MouseButton1Click:Connect(function()
-        killEnabled = not killEnabled
-        button.Text = killEnabled and "Kill: ON" or "Ativar Kill"
-    end)
-
-    return killEnabled, ScreenGui
-end
-
-local killEnabled, ScreenGui = createGUI()
-
--- Truque para manter o GUI sempre visível
-RunService.RenderStepped:Connect(function()
-    if ScreenGui.Parent ~= LocalPlayer:WaitForChild("PlayerGui") then
-        ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+-- Rainbow opcional
+local rainbow = true
+RunService.RenderStepped:Connect(function(dt)
+    if rainbow then
+        local r = tick()%1
+        frame.BackgroundColor3 = Color3.fromHSV(r,0.7,0.9)
     end
 end)
 
--- Função de Kill ao tocar
-local function setupCharacter(char)
-    local hrp = char:WaitForChild("HumanoidRootPart")
-    hrp.Touched:Connect(function(hit)
-        if killEnabled then
-            local targetPlayer = Players:GetPlayerFromCharacter(hit.Parent)
-            if targetPlayer and targetPlayer ~= LocalPlayer then
-                KillEvent:FireServer(hit.Parent)
+-- ======= FUNCTIONS =======
+
+-- Fly
+local flying = false
+flyBtn.MouseButton1Click:Connect(function()
+    flying = not flying
+    flyBtn.Text = flying and "Fly: ON" or "Fly: OFF"
+end)
+
+-- Noclip
+noclipBtn.MouseButton1Click:Connect(function()
+    noclipEnabled = not noclipEnabled
+    noclipBtn.Text = noclipEnabled and "Noclip: ON" or "Noclip: OFF"
+end)
+
+RunService.Stepped:Connect(function()
+    if noclipEnabled then
+        for _, part in pairs(Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
             end
         end
-    end)
-end
+    end
+end)
 
--- Setup inicial e respawn
-if LocalPlayer.Character then
-    setupCharacter(LocalPlayer.Character)
-end
-LocalPlayer.CharacterAdded:Connect(setupCharacter)
+-- GodMode
+godBtn.MouseButton1Click:Connect(function()
+    godModeEnabled = not godModeEnabled
+    godBtn.Text = godModeEnabled and "GodMode: ON" or "GodMode: OFF"
+    Humanoid.MaxHealth = godModeEnabled and math.huge or 100
+    Humanoid.Health = Humanoid.MaxHealth
+end)
+
+-- Speed
+speedBtn.MouseButton1Click:Connect(function()
+    speedValue = speedValue + 16
+    if speedValue > 100 then speedValue = 16 end
+    speedBtn.Text = "Speed: "..speedValue
+    Humanoid.WalkSpeed = speedValue
+end)
+
+-- Jump
+jumpBtn.MouseButton1Click:Connect(function()
+    jumpValue = jumpValue + 25
+    if jumpValue > 200 then jumpValue = 50 end
+    jumpBtn.Text = "Jump: "..jumpValue
+    Humanoid.JumpPower = jumpValue
+end)
+
+-- Fly movement
+local flyDirection = Vector3.new(0,0,0)
+UserInputService.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Keyboard then
+        if input.KeyCode == Enum.KeyCode.W then flyDirection = flyDirection + Vector3.new(0,0,-1) end
+        if input.KeyCode == Enum.KeyCode.S then flyDirection = flyDirection + Vector3.new(0,0,1) end
+        if input.KeyCode == Enum.KeyCode.A then flyDirection = flyDirection + Vector3.new(-1,0,0) end
+        if input.KeyCode == Enum.KeyCode.D then flyDirection = flyDirection + Vector3.new(1,0,0) end
+        if input.KeyCode == Enum.KeyCode.Space then flyDirection = flyDirection + Vector3.new(0,1,0) end
+        if input.KeyCode == Enum.KeyCode.LeftShift then flyDirection = flyDirection + Vector3.new(0,-1,0) end
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Keyboard then
+        flyDirection = Vector3.new(0,0,0)
+    end
+end)
+
+RunService.RenderStepped:Connect(function(dt)
+    if flying then
+        HRP.CFrame = HRP.CFrame + flyDirection.Unit * flySpeed * dt
+    end
+end)
+
+-- Teleport clicando na tela (mobile)
+local mouse = LocalPlayer:GetMouse()
+mouse.Button1Down:Connect(function()
+    if UserInputService.TouchEnabled then
+        local pos = mouse.Hit.p
+        HRP.CFrame = CFrame.new(pos + Vector3.new(0,3,0))
+    end
+end)
+
+-- ======= END =======
